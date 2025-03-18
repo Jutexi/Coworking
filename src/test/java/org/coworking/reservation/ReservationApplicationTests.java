@@ -8,7 +8,7 @@ class ReservationApplicationTests {
 
     @Test
     void contextLoads() {
-      // no use right now
+      // not use right now
     }
 
 }
