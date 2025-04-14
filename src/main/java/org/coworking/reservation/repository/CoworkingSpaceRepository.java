@@ -1,9 +1,10 @@
 package org.coworking.reservation.repository;
 
-import org.coworking.reservation.model.Reservation;
+import org.coworking.reservation.model.CoworkingSpace;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface ReservationRepository extends JpaRepository<Reservation, Integer> {
+public interface CoworkingSpaceRepository extends JpaRepository<CoworkingSpace, Integer> {
 }
+

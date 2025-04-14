@@ -1,65 +1,84 @@
 package org.coworking.reservation.service;
 
-import java.util.List;
-import org.coworking.reservation.exception.ReservationNotFoundException;
+import org.coworking.reservation.dto.ReservationDTO;
+import org.coworking.reservation.mapper.ReservationMapper;
 import org.coworking.reservation.model.Reservation;
 import org.coworking.reservation.repository.ReservationRepository;
 import org.springframework.stereotype.Service;
 
-/**
- * Сервис для управления бронированием рабочих мест.
- */
+import java.util.List;
+import java.util.Optional;
+
 @Service
 public class ReservationService {
 
-  private final ReservationRepository reservationRepository;
+    private final ReservationRepository reservationRepository;
+    private final ReservationMapper reservationMapper;
 
-  /**
-   * Конструктор сервиса бронирования.
-   *
-   * @param reservationRepository репозиторий бронирования
-   */
-  public ReservationService(ReservationRepository reservationRepository) {
-    this.reservationRepository = reservationRepository;
-  }
-
-  /**
-   * Получает список всех бронирований.
-   *
-   * @return список объектов {@link Reservation}
-   */
-  public List<Reservation> getAllReservations() {
-    return reservationRepository.getAllReservations();
-  }
-
-  /**
-   * Получает бронирование по его идентификатору.
-   *
-   * @param id идентификатор бронирования
-   * @return объект {@link Reservation}
-   * @throws ReservationNotFoundException если бронирование не найдено
-   */
-  public Reservation getReservationById(int id) {
-    Reservation reservation = reservationRepository.getReservationById(id);
-    if (reservation == null) {
-      throw new ReservationNotFoundException("Бронирование с ID " + id + " не найдено.");
+    public ReservationService(ReservationRepository reservationRepository, ReservationMapper reservationMapper) {
+        this.reservationRepository = reservationRepository;
+        this.reservationMapper = reservationMapper;
     }
-    return reservation;
-  }
 
-  /**
-   * Получает отфильтрованный список бронирований по дате и рабочему пространству.
-   *
-   * @param date  дата бронирования
-   * @param space рабочее пространство
-   * @return список объектов {@link Reservation}, соответствующих критериям
-   * @throws ReservationNotFoundException если бронирования не найдены
-   */
-  public List<Reservation> getFilteredReservations(String date, String space) {
-    List<Reservation> filtered = reservationRepository.getFilteredReservations(date, space);
-    if (filtered.isEmpty()) {
-      throw new ReservationNotFoundException("Бронирования по заданным параметрам не найдены.");
+    /**
+     * Создает новое бронирование.
+     *
+     * @param reservationDTO DTO бронирования
+     * @return созданное бронирование в виде DTO
+     */
+    public ReservationDTO createReservation(ReservationDTO reservationDTO) {
+        Reservation reservation = reservationMapper.toEntity(reservationDTO);
+        Reservation savedReservation = reservationRepository.save(reservation);
+        return reservationMapper.toDto(savedReservation);
     }
-    return filtered;
-  }
+
+    /**
+     * Получает бронирование по ID.
+     *
+     * @param id идентификатор бронирования
+     * @return DTO бронирования, если найдено
+     */
+    public ReservationDTO getReservationById(Integer id) {
+        Optional<Reservation> reservation = reservationRepository.findById(id);
+        return reservation.map(reservationMapper::toDto).orElse(null);
+    }
+
+    /**
+     * Обновляет существующее бронирование.
+     *
+     * @param id идентификатор бронирования
+     * @param reservationDTO обновленные данные бронирования
+     * @return обновленное бронирование в виде DTO
+     */
+    public ReservationDTO updateReservation(Integer id, ReservationDTO reservationDTO) {
+        Optional<Reservation> existingReservation = reservationRepository.findById(id);
+        if (existingReservation.isPresent()) {
+            Reservation reservation = existingReservation.get();
+            reservation.setDate(reservationDTO.getDate());
+            reservation.setTimeSlot(reservationDTO.getTimeSlot());
+            // Логика обновления пользователей и коворкинга может быть добавлена здесь
+            Reservation updatedReservation = reservationRepository.save(reservation);
+            return reservationMapper.toDto(updatedReservation);
+        }
+        return null;
+    }
+
+    /**
+     * Удаляет бронирование по ID.
+     *
+     * @param id идентификатор бронирования
+     */
+    public void deleteReservation(Integer id) {
+        reservationRepository.deleteById(id);
+    }
+
+    /**
+     * Получает список всех бронирований.
+     *
+     * @return список DTO всех бронирований
+     */
+    public List<ReservationDTO> getAllReservations() {
+        List<Reservation> reservations = reservationRepository.findAll();
+        return reservationMapper.toDtoList(reservations);
+    }
 }

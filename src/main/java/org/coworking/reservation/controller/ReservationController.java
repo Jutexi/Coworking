@@ -1,64 +1,85 @@
 package org.coworking.reservation.controller;
 
-import java.util.List;
-import org.coworking.reservation.model.Reservation;
+import org.coworking.reservation.dto.ReservationDTO;
 import org.coworking.reservation.service.ReservationService;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
-/**
- * Контроллер для управления бронированиями.
- */
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/reservations")
 public class ReservationController {
 
   private final ReservationService reservationService;
 
-  /**
-   * Конструктор контроллера бронирований.
-   *
-   * @param reservationService сервис бронирований
-   */
   public ReservationController(ReservationService reservationService) {
     this.reservationService = reservationService;
   }
 
   /**
-   * Получить список всех бронирований.
+   * Создает новое бронирование.
    *
-   * @return список всех бронирований
+   * @param reservationDTO DTO бронирования
+   * @return созданное бронирование
    */
-  @GetMapping("/all")
-  public List<Reservation> getAllReservations() {
-    return reservationService.getAllReservations();
+  @PostMapping
+  public ResponseEntity<ReservationDTO> createReservation(@RequestBody ReservationDTO reservationDTO) {
+    ReservationDTO createdReservation = reservationService.createReservation(reservationDTO);
+    return ResponseEntity.ok(createdReservation);
   }
 
   /**
-   * Получить бронирование по ID.
+   * Получает бронирование по ID.
    *
    * @param id идентификатор бронирования
-   * @return объект бронирования
+   * @return найденное бронирование
    */
   @GetMapping("/{id}")
-  public Reservation getReservationById(@PathVariable int id) {
-    return reservationService.getReservationById(id);
+  public ResponseEntity<ReservationDTO> getReservationById(@PathVariable Integer id) {
+    ReservationDTO reservation = reservationService.getReservationById(id);
+    if (reservation != null) {
+      return ResponseEntity.ok(reservation);
+    }
+    return ResponseEntity.notFound().build();
   }
 
   /**
-   * Фильтрация бронирований по дате и/или названию коворкинга.
+   * Обновляет существующее бронирование.
    *
-   * @param date  дата бронирования (необязательный параметр)
-   * @param space название коворкинга (необязательный параметр)
-   * @return список бронирований, соответствующих фильтрам
+   * @param id идентификатор бронирования
+   * @param reservationDTO обновленные данные бронирования
+   * @return обновленное бронирование
    */
-  @GetMapping("/filter")
-  public List<Reservation> getFilteredReservations(
-      @RequestParam(required = false) String date,
-      @RequestParam(required = false) String space) {
-    return reservationService.getFilteredReservations(date, space);
+  @PutMapping("/{id}")
+  public ResponseEntity<ReservationDTO> updateReservation(@PathVariable Integer id, @RequestBody ReservationDTO reservationDTO) {
+    ReservationDTO updatedReservation = reservationService.updateReservation(id, reservationDTO);
+    if (updatedReservation != null) {
+      return ResponseEntity.ok(updatedReservation);
+    }
+    return ResponseEntity.notFound().build();
+  }
+
+  /**
+   * Удаляет бронирование по ID.
+   *
+   * @param id идентификатор бронирования
+   * @return статус операции
+   */
+  @DeleteMapping("/{id}")
+  public ResponseEntity<Void> deleteReservation(@PathVariable Integer id) {
+    reservationService.deleteReservation(id);
+    return ResponseEntity.noContent().build();
+  }
+
+  /**
+   * Получает список всех бронирований.
+   *
+   * @return список бронирований
+   */
+  @GetMapping
+  public ResponseEntity<List<ReservationDTO>> getAllReservations() {
+    List<ReservationDTO> reservations = reservationService.getAllReservations();
+    return ResponseEntity.ok(reservations);
   }
 }
