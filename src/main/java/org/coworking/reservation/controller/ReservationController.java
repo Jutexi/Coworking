@@ -82,4 +82,21 @@ public class ReservationController {
     List<ReservationDTO> reservations = reservationService.getAllReservations();
     return ResponseEntity.ok(reservations);
   }
+
+  /**
+   * Получает список бронирований по имени пользователя.
+   *
+   * @param userName имя пользователя
+   * @return список бронирований
+   */
+  @GetMapping("/filter")
+  public ResponseEntity<List<ReservationDTO>> getFilteredReservations(@RequestParam String userName) {
+    List<ReservationDTO> reservations = reservationService.getReservationsByUserName(userName);
+    return ResponseEntity.ok(reservations);
+  }
+  //@GetMapping("/user/{userName}")
+  //public ResponseEntity<List<ReservationDTO>> getReservationsByUserName(@PathVariable String userName) {
+  //  List<ReservationDTO> reservations = reservationService.getReservationsByUserName(userName);
+  //  return ResponseEntity.ok(reservations);
+  //}
 }
